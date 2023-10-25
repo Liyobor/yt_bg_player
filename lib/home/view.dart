@@ -29,10 +29,9 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: (){
-
                 Get.dialog(
                   const Center(child: CircularProgressIndicator()),
-                  barrierDismissible: false, // 使其不能被點擊外部區域來關閉
+                  barrierDismissible: false,
                 );
                 debugPrint("Extract btn clicked!");
                 logic.extractPlaylist(logic.videoId.value).whenComplete(() => Get.back());
@@ -47,10 +46,9 @@ class HomePage extends StatelessWidget {
                   return ListTile(
                     title: Text(logic.titles[index]),
                     onTap: () {
-
-                      final titles = logic.titles[index];
-                      final id = logic.videoIdMap[titles]!;
-                      logic.getAudioFromVideoId(id).then((value) => logic.playAudio(value.toString()));
+                      logic.playFromIndex(index);
+                      // final title = logic.titles[index];
+                      // logic.playAudioByTitle(title);
                     },
                   );
                 },

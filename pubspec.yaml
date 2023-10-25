@@ -39,6 +39,8 @@ dependencies:
   youtube_explode_dart: ^2.0.2
   just_audio: ^0.9.35
   audio_service: ^0.18.12
+  audio_session: ^0.1.16
+  rxdart: ^0.27.7
 
 dev_dependencies:
   flutter_test:
