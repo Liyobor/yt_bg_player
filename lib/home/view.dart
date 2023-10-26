@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -41,10 +42,10 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 16),
             Expanded(
               child: Obx(() => ListView.builder(
-                itemCount: logic.titles.length,
+                itemCount: logic.itemCollection.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text(logic.titles[index]),
+                    title: Text(logic.itemCollection[index].title),
                     onTap: () {
                       logic.playFromIndex(index);
                       // final title = logic.titles[index];
@@ -54,6 +55,14 @@ class HomePage extends StatelessWidget {
                 },
               )),
             ),
+            Obx(() {
+              if (!logic.isBuildingCollection.value) {
+                return Container();
+              }
+
+              double progressValue = logic.videoMap.isEmpty ? 0 : logic.parseVideoProgress.value / logic.videoMap.length;
+              return LinearProgressIndicator(value: progressValue);
+            })
           ],
         ),
       ),
