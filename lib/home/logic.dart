@@ -1,12 +1,14 @@
 
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../utils/audio_handler.dart';
 
-
+enum LoopMode { off, on, single }
 
 class HomeLogic extends GetxController {
   final yt = YoutubeExplode();
@@ -28,20 +30,45 @@ class HomeLogic extends GetxController {
   RxInt parseVideoProgress = 0.obs;
   RxBool isBuildingCollection = false.obs;
 
-
-
+  var shuffleActive = false.obs;
+  var loopMode = LoopMode.off.obs;
+  var currentMediaItem = const MediaItem(id: 'temp', title: 'Playing Nothing').obs;
   HomeLogic() {
     audioPlayerHandler = AudioPlayerHandlerImpl();
     AudioService.init(
         builder: () => audioPlayerHandler,
-        config: AudioServiceConfig(
+        config: const AudioServiceConfig(
           androidNotificationChannelId: 'com.mycompany.myapp.audio',
           androidNotificationChannelName: 'Audio Service Demo',
-          // androidNotificationOngoing: true,
+          // androidNotificationOngoing: false,
           androidStopForegroundOnPause: false
         ),
     );
-        // .then((value) => _audioHandler = value);
+
+    
+
+    audioPlayerHandler.setCurrentIndexChangedCallback((currentIndex) {
+
+
+      if(currentIndex!=null) {
+
+        audioPlayerHandler.queueState.first.then((value) {
+          currentMediaItem.value = value.queue[currentIndex];
+        });
+
+      }else{
+        currentMediaItem.value = const MediaItem(id: 'temp', title: 'Playing Nothing');
+      }
+    });
+
+    audioPlayerHandler.setCurrentPlayingChangedCallback((playing) {
+
+      if(playing!=null) {
+        isPlaying.value = playing;
+      }else{
+        isPlaying.value = false;
+      }
+    });
   }
 
   Future<void> extractPlaylist(String playlistId) async {
@@ -57,6 +84,29 @@ class HomeLogic extends GetxController {
     buildItemCollection();
   }
 
+  void setShuffleMode(){
+    if(shuffleActive.value){
+      audioPlayerHandler.setShuffleMode(AudioServiceShuffleMode.all);
+    }else{
+      audioPlayerHandler.setShuffleMode(AudioServiceShuffleMode.none);
+    }
+  }
+
+  void setLoopingMode() {
+    switch (loopMode.value) {
+      case LoopMode.off:
+        audioPlayerHandler.setRepeatMode(AudioServiceRepeatMode.none);
+        break;
+      case LoopMode.on:
+        audioPlayerHandler.setRepeatMode(AudioServiceRepeatMode.all);
+        break;
+      case LoopMode.single:
+        audioPlayerHandler.setRepeatMode(AudioServiceRepeatMode.one);
+        break;
+    }
+  }
+
+
   Future<MediaItem> getMediaItem(String title)async{
     final video = videoMap[title]!;
     var manifest = await yt.videos.streamsClient.getManifest(video.id.value);
@@ -66,41 +116,6 @@ class HomeLogic extends GetxController {
       title: title,
       duration: video.duration,
     );
-  }
-
-  Future<void> playAudioByTitle(String title) async {
-    var item = await getMediaItem(title);
-    audioPlayerHandler.playMediaItem(item);
-    isPlaying.value = true;
-  }
-
-  Future<Uri> getAudioFromVideoId(VideoId videoId)async{
-    var manifest = await yt.videos.streamsClient.getManifest(videoId);
-    var audio = manifest.audioOnly.first;
-    return audio.url;
-  }
-
-
-
-  Future<void> playAllRandomly() async {
-
-
-    audioPlayerHandler.setShuffleMode(AudioServiceShuffleMode.none);
-    var itemMap = <String, MediaItem>{};
-    var futures = videoMap.entries.map((entry) async {
-      final item = await getMediaItem(entry.value.title);
-      itemMap[entry.value.title] = item;
-    }).toList();
-    await Future.wait(futures);
-
-    for (var key in videoMap.keys) {
-      var item = itemMap[videoMap[key]!.title];
-      if (item != null) {
-        audioPlayerHandler.addQueueItem(item);
-      }
-    }
-
-    audioPlayerHandler.play();
   }
 
 
@@ -156,8 +171,18 @@ class HomeLogic extends GetxController {
     var reorderedCollection = [...itemCollection.sublist(index), ...itemCollection.sublist(0, index)];
     await audioPlayerHandler.updateQueue(reorderedCollection);
     await audioPlayerHandler.seekToIndex(Duration.zero, 0);
+    currentMediaItem.value = reorderedCollection[0];
     audioPlayerHandler.play();
 
   }
+
+
+  void skipToPrevious() => audioPlayerHandler.skipToPrevious();
+
+  void skipToNext() => audioPlayerHandler.skipToNext();
+
+  pause() => audioPlayerHandler.pause();
+
+  play() => audioPlayerHandler.play();
 }
 

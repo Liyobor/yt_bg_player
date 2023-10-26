@@ -1,124 +1,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
-// class AudioPlayerHandler extends BaseAudioHandler with QueueHandler , SeekHandler  {
-//
-//
-//   final _player = AudioPlayer();
-//
-//   final playlist = ConcatenatingAudioSource(
-//     children: [],
-//   );
-//
-//   final _mediaItemExpando = Expando<MediaItem>();
-//
-//   AudioPlayerHandler() {
-//     _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
-//
-//
-//   }
-//
-//
-//
-//   @override
-//   Future<void> playMediaItem(MediaItem item) {
-//     mediaItem.add(item);
-//     _player.setAudioSource(AudioSource.uri(Uri.parse(item.id)));
-//     play();
-//     return super.playMediaItem(item);
-//   }
-//
-//   @override
-//   Future<void> play() => _player.play();
-//
-//   @override
-//   Future<void> pause() => _player.pause();
-//
-//   @override
-//   Future<void> seek(Duration position) => _player.seek(position);
-//
-//   @override
-//   Future<void> stop() => _player.stop();
-//
-//   Future<void> setUrl(String url) async {
-//     await _player.setUrl(url);
-//   }
-//
-//   // Future<void> playList() async {
-//   //
-//   //   await playlist.add(mediaItem);
-//   //   return super.addQueueItem(mediaItem);
-//   // }
-//
-//
-//
-//   @override
-//   Future<void> addQueueItem(MediaItem mediaItem) async {
-//     await playlist.add(_itemToSource(mediaItem));
-//   }
-//
-//   @override
-//   Future<void> updateMediaItem(MediaItem mediaItem) async {
-//     final index = queue.value.indexWhere((item) => item.id == mediaItem.id);
-//     _mediaItemExpando[_player.sequence![index]] = mediaItem;
-//   }
-//
-//   @override
-//   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
-//     final enabled = shuffleMode == AudioServiceShuffleMode.all;
-//     if (enabled) {
-//       await _player.shuffle();
-//     }
-//     playbackState.add(playbackState.value.copyWith(shuffleMode: shuffleMode));
-//     await _player.setShuffleModeEnabled(enabled);
-//   }
-//
-//   @override
-//   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-//     playbackState.add(playbackState.value.copyWith(repeatMode: repeatMode));
-//     await _player.setLoopMode(LoopMode.values[repeatMode.index]);
-//   }
-//
-//   AudioSource _itemToSource(MediaItem mediaItem) {
-//     final audioSource = AudioSource.uri(Uri.parse(mediaItem.id));
-//     _mediaItemExpando[audioSource] = mediaItem;
-//     return audioSource;
-//   }
-//
-//   PlaybackState _transformEvent(PlaybackEvent event) {
-//     return PlaybackState(
-//       controls: [
-//         MediaControl.rewind,
-//         if (_player.playing) MediaControl.pause else MediaControl.play,
-//         MediaControl.stop,
-//         MediaControl.fastForward,
-//       ],
-//       systemActions: const {
-//         MediaAction.seek,
-//         MediaAction.seekForward,
-//         MediaAction.seekBackward,
-//       },
-//       androidCompactActionIndices: const [0, 1, 3],
-//       processingState: const {
-//         ProcessingState.idle: AudioProcessingState.idle,
-//         ProcessingState.loading: AudioProcessingState.loading,
-//         ProcessingState.buffering: AudioProcessingState.buffering,
-//         ProcessingState.ready: AudioProcessingState.ready,
-//         ProcessingState.completed: AudioProcessingState.completed,
-//       }[_player.processingState]!,
-//       playing: _player.playing,
-//       updatePosition: _player.position,
-//       bufferedPosition: _player.bufferedPosition,
-//       speed: _player.speed,
-//       queueIndex: event.currentIndex,
-//     );
-//   }
-//
-//
-// }
+
 
 
 abstract class AudioPlayerHandler implements AudioHandler {
@@ -129,6 +14,9 @@ abstract class AudioPlayerHandler implements AudioHandler {
   ValueStream<double> get speed;
 }
 
+
+typedef CurrentIndexChangedCallback = void Function(int? currentIndex);
+typedef CurrentPlayingChangedCallback = void Function(bool? playing);
 /// The implementation of [AudioPlayerHandler].
 ///
 /// This handler is backed by a just_audio player. The player's effective
@@ -148,6 +36,8 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   @override
   final BehaviorSubject<double> speed = BehaviorSubject.seeded(1.0);
   final _mediaItemExpando = Expando<MediaItem>();
+
+
 
   /// A stream of the current effective sequence from just_audio.
   Stream<List<IndexedAudioSource>> get _effectiveSequence => Rx.combineLatest3<
@@ -262,6 +152,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
     // Propagate all events from the audio player to AudioService clients.
     _player.playbackEventStream.listen(_broadcastState);
 
+
     _player.shuffleModeEnabledStream
         .listen((enabled) => _broadcastState(_player.playbackEvent));
 
@@ -272,13 +163,21 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
         _player.seek(Duration.zero, index: 0);
       }
     });
-
     // Broadcast the current queue.
     _effectiveSequence
         .map((sequence) =>
         sequence.map((source) => _mediaItemExpando[source]!).toList())
         .pipe(queue);
 
+    _player.currentIndexStream.listen((currentIndex) {
+      _currentIndexChangedCallback?.call(currentIndex);
+    });
+
+
+
+    _player.playingStream.listen((currentPlaying) {
+      _currentPlayingChangedCallback?.call(currentPlaying);
+    });
 
   }
 
@@ -378,6 +277,22 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
             (state) => state.processingState == AudioProcessingState.idle);
   }
 
+
+  CurrentIndexChangedCallback? _currentIndexChangedCallback;
+
+  void setCurrentIndexChangedCallback(CurrentIndexChangedCallback callback) {
+    _currentIndexChangedCallback = callback;
+  }
+
+
+  CurrentPlayingChangedCallback? _currentPlayingChangedCallback;
+
+  void setCurrentPlayingChangedCallback(CurrentPlayingChangedCallback callback) {
+    _currentPlayingChangedCallback = callback;
+  }
+
+
+
   /// Broadcasts the current state to all clients.
   void _broadcastState(PlaybackEvent event) {
     final playing = _player.playing;
@@ -389,6 +304,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
         if (playing) MediaControl.pause else MediaControl.play,
         MediaControl.stop,
         MediaControl.skipToNext,
+        // MediaControl.custom(androidIcon: 'drawable/ic_close', label: 'Close', name: "87")
       ],
       systemActions: const {
         MediaAction.seek,
