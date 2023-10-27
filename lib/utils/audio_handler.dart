@@ -304,6 +304,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
         if (playing) MediaControl.pause else MediaControl.play,
         MediaControl.stop,
         MediaControl.skipToNext,
+
         // MediaControl.custom(androidIcon: 'drawable/ic_close', label: 'Close', name: "87")
       ],
       systemActions: const {

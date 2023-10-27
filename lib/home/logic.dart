@@ -1,8 +1,6 @@
 
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
@@ -51,10 +49,19 @@ class HomeLogic extends GetxController {
 
 
       if(currentIndex!=null) {
-
-        audioPlayerHandler.queueState.first.then((value) {
-          currentMediaItem.value = value.queue[currentIndex];
-        });
+        currentMediaItem.value =itemCollection[currentIndex];
+        // audioPlayerHandler.queueState.first.then((value) {
+        //
+        //   try {
+        //     currentMediaItem.value = value.queue[currentIndex];
+        //
+        //
+        //
+        //   } catch (e) {
+        //     // ignoring exceptions
+        //   }
+        //
+        // });
 
       }else{
         currentMediaItem.value = const MediaItem(id: 'temp', title: 'Playing Nothing');
@@ -168,10 +175,16 @@ class HomeLogic extends GetxController {
       await audioPlayerHandler.stop();
     }
 
-    var reorderedCollection = [...itemCollection.sublist(index), ...itemCollection.sublist(0, index)];
-    await audioPlayerHandler.updateQueue(reorderedCollection);
-    await audioPlayerHandler.seekToIndex(Duration.zero, 0);
-    currentMediaItem.value = reorderedCollection[0];
+    // // var reorderedCollection = [...itemCollection.sublist(index), ...itemCollection.sublist(0, index)];
+    // await audioPlayerHandler.updateQueue(reorderedCollection);
+    // await audioPlayerHandler.seekToIndex(Duration.zero, 0);
+    // currentMediaItem.value = reorderedCollection[0];
+
+
+    await audioPlayerHandler.updateQueue(itemCollection);
+    await audioPlayerHandler.seekToIndex(Duration.zero, index);
+    currentMediaItem.value = itemCollection[index];
+
     audioPlayerHandler.play();
 
   }
