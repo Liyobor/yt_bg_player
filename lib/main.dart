@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:yt_bg_player/home/view.dart';
 
+import 'home/logic.dart';
+
 void main() {
+  final logic = Get.put(HomeLogic());
+  logic.initPlayer();
   runApp(const MyApp());
 }
 

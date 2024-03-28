@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -119,6 +120,10 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
     _init();
   }
 
+  bool isPlayListEmpty(){
+    return _playlist.length ==0;
+  }
+
   Future<void> _init() async {
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.speech());
@@ -191,6 +196,12 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
       mediaItems.map(_itemToSource).toList();
 
   @override
+  Future<void> onTaskRemoved() {
+    debugPrint("onTaskRemoved");
+    return super.onTaskRemoved();
+  }
+
+  @override
   Future<void> addQueueItem(MediaItem mediaItem) async {
       await _playlist.add(_itemToSource(mediaItem));
   }
@@ -209,6 +220,10 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   Future<void> updateQueue(List<MediaItem> queue) async {
     await _playlist.clear();
     await _playlist.addAll(_itemsToSources(queue));
+
+    if(_player.audioSource==null){
+      _player.setAudioSource(_playlist);
+    }
   }
 
   @override
@@ -254,6 +269,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
             : index);
   }
 
+
   @override
   Future<void> play() async {
     if(_player.audioSource==null){
@@ -270,11 +286,20 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
 
   Future<void> seekToIndex(Duration position,int index) => _player.seek(position,index: index);
 
+
+  @override
+  Future<void> onNotificationDeleted() {
+    debugPrint("onNotificationDeleted");
+    return super.onNotificationDeleted();
+  }
+
+
   @override
   Future<void> stop() async {
     await _player.stop();
-    await playbackState.firstWhere(
-            (state) => state.processingState == AudioProcessingState.idle);
+    // await playbackState.firstWhere(
+    //         (state) => state.processingState == AudioProcessingState.idle);
+    super.stop();
   }
 
 
