@@ -1,10 +1,10 @@
 
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
+import '../main.dart';
 import '../utils/audio_handler.dart';
 
 enum LoopMode { off, on, single }
@@ -79,9 +79,26 @@ class HomeLogic extends GetxController {
     });
   }
 
+
+  void clearQueue(){
+    try {
+
+
+    }catch (e) {
+      customDebugPrint("clear queue catch error : $e");
+    }
+  }
+
   Future<void> extractPlaylist(String playlistId) async {
-    audioPlayerHandler.updateQueue([]);
+
+
+    for(var i=0;i<=audioPlayerHandler.queue.value.length;i++){
+      audioPlayerHandler.removeQueueItemAt(i);
+    }
+
+
     itemCollection.clear();
+
     var playlist = await yt.playlists.get(playlistId);
     var map = <String, Video>{};
     await for (var video in yt.playlists.getVideos(playlist.id)) {
@@ -116,14 +133,22 @@ class HomeLogic extends GetxController {
 
 
   Future<MediaItem> getMediaItem(String title)async{
-    final video = videoMap[title]!;
-    var manifest = await yt.videos.streamsClient.getManifest(video.id.value);
-    var audio = manifest.audioOnly.withHighestBitrate();
-    return MediaItem(
-      id: audio.url.toString(),
-      title: title,
-      duration: video.duration,
-    );
+
+    try {
+      final video = videoMap[title]!;
+      var manifest = await yt.videos.streamsClient.getManifest(video.id.value);
+      var audio = manifest.audioOnly.withHighestBitrate();
+      return MediaItem(
+        id: audio.url.toString(),
+        title: title,
+        duration: video.duration,
+      );
+    } on Exception catch (_) {
+      customDebugPrint('getMediaItem error: $_');
+      return const MediaItem(id: "", title: "error",duration: Duration(seconds: 0));
+    }
+
+
   }
 
 
@@ -150,6 +175,7 @@ class HomeLogic extends GetxController {
     }
 
     var futures = videoMap.keys.map((key) async {
+
       final item = await getMediaItem(videoMap[key]!.title);
       int index = keyIndexMap[key]!;
       itemCollection[index] = item;
@@ -159,7 +185,7 @@ class HomeLogic extends GetxController {
     // 等待所有getMediaItem调用完成
     await Future.wait(futures);
     parseVideoProgress.value = 0;
-    isBuildingCollection.value = false; // 设置为false，表示建构完成
+    isBuildingCollection.value = false;
 
   }
 

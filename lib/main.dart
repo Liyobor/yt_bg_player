@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:yt_bg_player/home/view.dart';
@@ -28,3 +29,12 @@ class MyApp extends StatelessWidget {
 }
 
 
+void customDebugPrint(dynamic input) {
+  if (kDebugMode) {
+    final now = DateTime.now();
+    final formattedTime = '${now.hour.toString().padLeft(2, '0')}:'
+        '${now.minute.toString().padLeft(2, '0')}:'
+        '${now.second.toString().padLeft(2, '0')}';
+    print('[$formattedTime] $input');
+  }
+}
