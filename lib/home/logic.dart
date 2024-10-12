@@ -136,7 +136,7 @@ class HomeLogic extends GetxController {
 
     try {
       final video = videoMap[title]!;
-      var manifest = await yt.videos.streamsClient.getManifest(video.id.value);
+      var manifest = await yt.videos.streamsClient.getManifest(video.id.value,ytClients: [YoutubeApiClient.android]);
       var audio = manifest.audioOnly.withHighestBitrate();
       return MediaItem(
         id: audio.url.toString(),
