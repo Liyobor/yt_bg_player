@@ -33,6 +33,7 @@ class HomeLogic extends GetxController {
   var loopMode = LoopMode.off.obs;
   var currentMediaItem = const MediaItem(id: 'temp', title: 'Playing Nothing').obs;
   void initPlayer() {
+
     audioPlayerHandler = AudioPlayerHandlerImpl();
     AudioService.init(
         builder: () => audioPlayerHandler,
@@ -182,7 +183,6 @@ class HomeLogic extends GetxController {
       parseVideoProgress.value++;
     }).toList();
 
-    // 等待所有getMediaItem调用完成
     await Future.wait(futures);
     parseVideoProgress.value = 0;
     isBuildingCollection.value = false;
