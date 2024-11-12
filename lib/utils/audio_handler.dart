@@ -3,6 +3,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:yt_bg_player/main.dart';
 
 
 
@@ -273,7 +274,9 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   @override
   Future<void> play() async {
     if(_player.audioSource==null){
+      customDebugPrint("_playlist : $_playlist");
       _player.setAudioSource(_playlist);
+
     }
     _player.play();
   }

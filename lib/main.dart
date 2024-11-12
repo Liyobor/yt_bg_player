@@ -38,3 +38,10 @@ void customDebugPrint(dynamic input) {
     print('[$formattedTime] $input');
   }
 }
+
+void printLongString(String text) {
+  final RegExp pattern = RegExp('.{1,800}'); // 800 is the size of each chunk
+  pattern
+      .allMatches(text)
+      .forEach((RegExpMatch match) => customDebugPrint(match.group(0)));
+}

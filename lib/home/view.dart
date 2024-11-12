@@ -130,14 +130,15 @@ class HomePage extends StatelessWidget {
             child: Obx(() => ListView.builder(
               itemCount: logic.itemCollection.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(logic.itemCollection[index].title),
-                  onTap: () {
-                    debugPrint("index = $index");
-                    logic.playFromIndex(index);
-                    // final title = logic.titles[index];
-                    // logic.playAudioByTitle(title);
-                  },
+                return RepaintBoundary(
+                  child: ListTile(
+                    title: Text(logic.itemCollection[index].title),
+                    onTap: () {
+                      logic.playFromIndex(index);
+                      // final title = logic.titles[index];
+                      // logic.playAudioByTitle(title);
+                    },
+                  ),
                 );
               },
             )),
