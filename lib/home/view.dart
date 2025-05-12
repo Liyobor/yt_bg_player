@@ -126,23 +126,38 @@ class HomePage extends StatelessWidget {
             ),
           ),
           // const SizedBox(height: 16),
+          // Expanded(
+          //   child: Obx(() => ListView.builder(
+          //     itemCount: logic.itemCollection.length,
+          //     itemBuilder: (context, index) {
+          //       return RepaintBoundary(
+          //         child: ListTile(
+          //           title: Text(logic.itemCollection[index].title),
+          //           onTap: () {
+          //             logic.playFromIndex(index);
+          //             // final title = logic.titles[index];
+          //             // logic.playAudioByTitle(title);
+          //           },
+          //         ),
+          //       );
+          //     },
+          //   )),
+          // ),
+
           Expanded(
-            child: Obx(() => ListView.builder(
-              itemCount: logic.itemCollection.length,
-              itemBuilder: (context, index) {
-                return RepaintBoundary(
-                  child: ListTile(
+              child: Obx(() => ListView(
+                children: [
+                  for(int index = 0; index < logic.itemCollection.length;index++) ListTile(
                     title: Text(logic.itemCollection[index].title),
-                    onTap: () {
+                    onTap: (){
                       logic.playFromIndex(index);
-                      // final title = logic.titles[index];
-                      // logic.playAudioByTitle(title);
                     },
-                  ),
-                );
-              },
-            )),
+                  )
+                ],
+              ))
           ),
+
+
           Obx(() {
             if (!logic.isBuildingCollection.value) {
               return Container();

@@ -2,6 +2,7 @@
 
 import 'package:audio_service/audio_service.dart';
 import 'package:get/get.dart';
+import 'package:pool/pool.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 import '../main.dart';
@@ -137,8 +138,9 @@ class HomeLogic extends GetxController {
 
     try {
       final video = videoMap[title]!;
-      var manifest = await yt.videos.streamsClient.getManifest(video.id.value);
+      var manifest = await yt.videos.streams.getManifest(video.id.value,requireWatchPage: false);
       var audio = manifest.audioOnly.withHighestBitrate();
+
       return MediaItem(
         id: audio.url.toString(),
         title: title,
@@ -175,15 +177,36 @@ class HomeLogic extends GetxController {
       i++;
     }
 
-    var futures = videoMap.keys.map((key) async {
 
-      final item = await getMediaItem(videoMap[key]!.title);
-      int index = keyIndexMap[key]!;
-      itemCollection[index] = item;
-      parseVideoProgress.value++;
-    }).toList();
+    final pool = Pool(40);
+    final futures = <Future>[];
+
+    for (var key in videoMap.keys) {
+      final f = pool.withResource(() async {
+        final item = await getMediaItem(videoMap[key]!.title);
+        final index = keyIndexMap[key]!;
+        itemCollection[index] = item;
+        parseVideoProgress.value++;
+      });
+      futures.add(f);
+
+    }
+
+
+    // var futures = videoMap.keys.map((key) async {
+    //
+    //   final item = await getMediaItem(videoMap[key]!.title);
+    //   int index = keyIndexMap[key]!;
+    //   itemCollection[index] = item;
+    //   parseVideoProgress.value++;
+    // }).toList();
 
     await Future.wait(futures);
+    await audioPlayerHandler.updateQueue(itemCollection);
+    await pool.close();
+
+
+
     parseVideoProgress.value = 0;
     isBuildingCollection.value = false;
 
@@ -196,7 +219,7 @@ class HomeLogic extends GetxController {
 
 
     if(itemCollection.isEmpty||itemCollection[index].id=="temp"){
-      return ;
+      return;
     }
 
 
@@ -213,12 +236,8 @@ class HomeLogic extends GetxController {
     // await audioPlayerHandler.seekToIndex(Duration.zero, 0);
     // currentMediaItem.value = reorderedCollection[0];
 
-
-
     await audioPlayerHandler.updateQueue(itemCollection);
-
     await audioPlayerHandler.seekToIndex(Duration.zero, index);
-
 
     currentMediaItem.value = itemCollection[index];
     audioPlayerHandler.play();

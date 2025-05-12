@@ -1,0 +1,2 @@
+D:/yt_bg_player/android/app/.cxx/RelWithDebInfo/q12514r4/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/yt_bg_player/android/app/.cxx/RelWithDebInfo/q12514r4/arm64-v8a/CMakeFiles/rebuild_cache.dir
