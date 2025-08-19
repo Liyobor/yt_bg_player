@@ -26,8 +26,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.yt_bg_player"
-    compileSdk 35
-    ndkVersion '25.0.8775105'
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -47,8 +46,8 @@ android {
         applicationId "com.example.yt_bg_player"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion 21
-        targetSdkVersion 35
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
