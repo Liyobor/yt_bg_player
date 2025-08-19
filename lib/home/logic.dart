@@ -22,9 +22,6 @@ class HomeLogic extends GetxController {
   List<String> titles = <String>[];
 
   RxList<MediaItem> itemCollection = <MediaItem>[].obs;
-
-  late AudioHandler _audioHandler;
-
   late AudioPlayerHandlerImpl audioPlayerHandler;
 
   RxInt parseVideoProgress = 0.obs;
@@ -146,8 +143,8 @@ class HomeLogic extends GetxController {
         title: title,
         duration: video.duration,
       );
-    } on Exception catch (_) {
-      customDebugPrint('getMediaItem error: $_');
+    } on Exception catch (e) {
+      customDebugPrint('getMediaItem error: $e');
       return const MediaItem(id: "", title: "error",duration: Duration(seconds: 0));
     }
 
