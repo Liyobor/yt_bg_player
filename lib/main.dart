@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       //   colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       //   useMaterial3: true,
       // ),
-      theme: ThemeData.dark(), // 设置为暗色主题
+      theme: ThemeData.dark(),
       home: HomePage(),
     );
   }

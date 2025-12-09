@@ -3,7 +3,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:get/get.dart';
 import 'package:pool/pool.dart';
+import 'package:youtube_explode_dart/solvers.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:youtube_explode_webview/youtube_explode_webview.dart';
 
 import '../main.dart';
 import '../utils/audio_handler.dart';
@@ -11,7 +13,7 @@ import '../utils/audio_handler.dart';
 enum LoopMode { off, on, single }
 
 class HomeLogic extends GetxController {
-  final yt = YoutubeExplode();
+  late YoutubeExplode yt;
 
   RxString videoId = ''.obs;
   RxBool isPlaying = false.obs;
@@ -30,6 +32,15 @@ class HomeLogic extends GetxController {
   var shuffleActive = false.obs;
   var loopMode = LoopMode.off.obs;
   var currentMediaItem = const MediaItem(id: 'temp', title: 'Playing Nothing').obs;
+
+  @override
+  void onInit() {
+    WebviewEJSSolver.init().then((solver){
+      yt = YoutubeExplode(jsSolver: solver);
+    });
+    super.onInit();
+  }
+
   void initPlayer() {
 
     audioPlayerHandler = AudioPlayerHandlerImpl();
